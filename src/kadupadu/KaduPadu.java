@@ -50,8 +50,8 @@ public class KaduPadu extends JFrame {
     private final String friendsPath = "friends.txt";
     private final String historyPath = "history.txt";
     
-    private final String serverHostName = "192.182.0.12";
-    private final int serverPortNumber = 1277;
+    private final String serverHostName = "localhost";
+    private final int serverPortNumber = 1683;
     private Socket clientSocket;
     private BufferedReader clientReader;
     private PrintWriter clientWriter;
@@ -96,17 +96,15 @@ public class KaduPadu extends JFrame {
     }
     
     public KaduPadu() throws IOException {
-        this.setUserID(this.getIdFromFile(this.getIdPath()));
-        System.out.println("ID użytkownika: "+ this.getUserID());
-        initialFriendsList(this.getFriendsPath());
-        initialMessageList(this.getHistoryPath());
-        
         System.out.println("Łączenie z serwerem");
         if(!startServerConnection(this.getServerHostName(), this.getServerPortNumber())) {
             System.out.println("Nie udało się nawiązać połączenia");
 
             return;
         } else {
+            initializeId(this.getIdPath());
+            initialFriendsList(this.getFriendsPath());
+            initialMessageList(this.getHistoryPath());
         
             System.out.println("Tworzenie głównego okna");
             //ustaw właściwości okna
@@ -129,20 +127,20 @@ public class KaduPadu extends JFrame {
         try {
             clientSocket = new Socket(hostName, port);
             clientReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            clientWriter = new PrintWriter(clientSocket.getOutputStream(), true);		
-
-            //writer.println(clientMessage);
-
-            //Thread.sleep(5000);
-            //writer.println(clientMessage);
-            //String serverMessage = reader.readLine();
-            //System.out.print(serverMessage);
+            clientWriter = new PrintWriter(clientSocket.getOutputStream(), true);
 
             Thread handler = new Thread(){
                 @Override
                 public void run() {
                     System.out.println("Rozpoczęto nasłuchiwanie na serwer");
+                    String serverMessage;
                     while(true){
+                        //try {
+                        //    serverMessage = clientReader.readLine();
+                        //    System.out.println("Odczytano wiadomość z serwera: " + serverMessage);
+                        //} catch (IOException ex) {
+                        //    Logger.getLogger(KaduPadu.class.getName()).log(Level.SEVERE, null, ex);
+                        //}
                         readMessageFromServer();
                     }
                 }
@@ -158,21 +156,35 @@ public class KaduPadu extends JFrame {
     }
     
     public void sendMessageToServer(MessageCode code,String msg){
-        clientWriter.println(code.toString()+':'+msg);
-        System.out.println("Wysłano wiadomość: " + code+':'+msg);
+        clientWriter.println(code.toString()+';'+msg);
+        System.out.println("Wysłano wiadomość: " + code+';'+msg);
     }
 	
     public void readMessageFromServer(){
         try {		
             String serverMessage = clientReader.readLine();
+            String code = serverMessage.substring(0, 1);
+            serverMessage = serverMessage.substring(2);
             System.out.println("Odczytano wiadomość z serwera: " + serverMessage);
-            switch(serverMessage.substring(0, 3)){
-                case "NID":
-                    this.createTxtFile(serverMessage.substring(4), this.getIdPath());
+            switch(code){
+                case "N":
+                    this.setUserID(Integer.parseInt(serverMessage));
+                    this.createTxtFile(serverMessage, this.getIdPath());
                     break;
-                case "NFR":
+                case "F":
+                    if(!"-1".equals(serverMessage)) {
+                        friendsList.add(serverMessage);
+                        addFriendToTxt(serverMessage, this.getFriendsPath());
+                        addFriendTOCombobox(serverMessage);
+                        newFriendLabel.setForeground(Color.green);
+                        newFriendLabel.setText("Prawidłowo dodano nowego znajomego!");
+                        newFriendText.setText("");
+                        System.out.println("Dodano nowego znajomego - "+serverMessage);
+                    } else {
+                        newFriendLabel.setText("Nie odnaleziono znajomego o podanym ID");
+                    }
                     break;
-                case "MSG":
+                case "M":
                     break;
                 default:
                     System.out.println("Nieznana wiadomość");
@@ -181,27 +193,6 @@ public class KaduPadu extends JFrame {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-    
-    private int getIdFromFile(String fileName) throws IOException {
-        int id = 0;
-        System.out.println("Poszukiwanie ID użytkownika");
-        if (new File(fileName).exists())
-        {
-            System.out.println("Znaleziono plik z ID");
-            try (BufferedReader br = new BufferedReader(new FileReader(fileName)))
-            {
-                id = Integer.parseInt(br.readLine());
-                System.out.println("Odczytano ID z pliku - " + id);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } 
-        } else {
-            System.out.println("Nie znaleziono pliku z ID");
-            id = this.generateNewID();
-            this.createTxtFile(Integer.toString(id), fileName);
-        }
-        return id;
     }
     
     private void initializeId(String fileName) throws IOException {
@@ -213,6 +204,7 @@ public class KaduPadu extends JFrame {
             {
                 this.setUserID(Integer.parseInt(br.readLine()));
                 System.out.println("Odczytano ID z pliku - " + this.getUserID());
+                sendMessageToServer(MessageCode.MY_ID, Integer.toString(this.getUserID()));
             } catch (IOException e) {
                 e.printStackTrace();
             } 
@@ -220,19 +212,6 @@ public class KaduPadu extends JFrame {
             System.out.println("Nie znaleziono pliku z ID");
             sendMessageToServer(MessageCode.NEW_ID, "");
         }
-    }
-    
-    private int generateNewID() throws IOException {
-        //try {
-        //    //System.out.println("Robie socket");
-        //    //Socket clientSocket = new Socket(this.getServerHostName(), this.getServerPortNumber());
-        //    //PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
-        //    //writer.println("Witaj Lipa");
-        //    //System.out.println("Wysłano");
-        //} catch (IOException e) {
-        //    e.printStackTrace();
-        //}
-        return 23;
     }
     
     private void createTxtFile(String content, String fileName) {
@@ -353,19 +332,7 @@ public class KaduPadu extends JFrame {
             String friendId = newFriendFieldContent;
             if(Integer.parseInt(friendId) == this.getUserID()) newFriendLabel.setText("Podano własne ID");
             else if(friendsList.contains(friendId)) newFriendLabel.setText("Podany znajomy istnieje już w Twojej liscie");
-            else {
-                if(checkFriendByServer(Integer.parseInt(friendId))) {
-                    friendsList.add(friendId);
-                    addFriendToTxt(friendId, this.getFriendsPath());
-                    addFriendTOCombobox(friendId);
-                    newFriendLabel.setForeground(Color.green);
-                    newFriendLabel.setText("Prawidłowo dodano nowego znajomego!");
-                    newFriendText.setText("");
-                    System.out.println("Dodano nowego znajomego - "+friendId);
-                } else {
-                    newFriendLabel.setText("Nie znaleziono znajomego na serwerze");
-                }
-            }
+            else this.sendMessageToServer(MessageCode.SEND_MESSAGE, friendId);
         }
     }
     
@@ -379,10 +346,6 @@ public class KaduPadu extends JFrame {
     
     private void addFriendTOCombobox(String friend) {
         friendsListModel.addElement(friend);
-    }
-    
-    private boolean checkFriendByServer(int id) {
-        return true;
     }
     
     private void sendMessage() {

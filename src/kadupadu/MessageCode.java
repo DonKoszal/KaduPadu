@@ -11,6 +11,7 @@ package kadupadu;
  */
 public enum MessageCode {
     
+    MY_ID("I"),
     NEW_FRIEND("F"),
     NEW_ID("N"),
     SEND_MESSAGE("M");
