@@ -157,7 +157,7 @@ public class KaduPadu extends JFrame {
     }
     
     public void sendMessageToServer(MessageCode code,String msg){
-        clientWriter.println(code.toString()+';'+msg);
+        clientWriter.println(code.toString()+';'+msg+';');
         System.out.println("Wysłano wiadomość: " + code+';'+msg);
     }
 	
@@ -344,7 +344,7 @@ public class KaduPadu extends JFrame {
             String friendId = newFriendFieldContent;
             if(Integer.parseInt(friendId) == this.getUserID()) newFriendLabel.setText("Podano własne ID");
             else if(friendsList.contains(friendId)) newFriendLabel.setText("Podany znajomy istnieje już w Twojej liscie");
-            else this.sendMessageToServer(MessageCode.SEND_MESSAGE, friendId);
+            else this.sendMessageToServer(MessageCode.NEW_FRIEND, friendId);
         }
     }
     
