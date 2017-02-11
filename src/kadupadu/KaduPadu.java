@@ -33,6 +33,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
@@ -61,7 +62,7 @@ public class KaduPadu extends JFrame {
     private HashMap<Integer, ArrayList<Message>> messageMap = new HashMap<Integer, ArrayList<Message>>();
     
     private JPanel container;
-    private JPanel historyPane;
+    private JPanel historyPanel;
     private JPanel friendsPanel;
     
     private JList friendsSelect;
@@ -229,15 +230,15 @@ public class KaduPadu extends JFrame {
     
     private void addMessagePanel() {
         System.out.println("Tworzenie okna wiadomości");
-        historyPane = new JPanel();
-        historyPane.setLayout(new BoxLayout(historyPane, BoxLayout.Y_AXIS));
-	historyPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-        historyPane.setMinimumSize( new Dimension( this.getWidth()*2/3, this.getHeight() ) );
-        historyPane.setPreferredSize( new Dimension( this.getWidth()*2/3, this.getHeight() ) );
-        historyPane.setMaximumSize( new Dimension( this.getWidth()*2/3, this.getHeight() ) );
+        historyPanel = new JPanel();
+        historyPanel.setLayout(new BoxLayout(historyPanel, BoxLayout.Y_AXIS));
+	historyPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        historyPanel.setMinimumSize( new Dimension( this.getWidth()*2/3, this.getHeight() ) );
+        historyPanel.setPreferredSize( new Dimension( this.getWidth()*2/3, this.getHeight() ) );
+        historyPanel.setMaximumSize( new Dimension( this.getWidth()*2/3, this.getHeight() ) );
         
 	kaduPaduLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
-	historyPane.add(kaduPaduLabel);
+	historyPanel.add(kaduPaduLabel);
         
         Border border = BorderFactory.createLineBorder(Color.BLACK);
         
@@ -246,22 +247,27 @@ public class KaduPadu extends JFrame {
         historyArea.setWrapStyleWord(true);
         historyArea.setEditable(false);
         historyArea.setBorder(BorderFactory.createMatteBorder(3,3,3,3,Color.blue));
-        historyPane.add(historyArea);//JTextArea
+        historyPanel.add(historyArea);//JTextArea
         
         messageArea = new JTextArea(1, 1);
         messageArea.setLineWrap(true);
         messageArea.setWrapStyleWord(true);
         messageArea.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25), border));
-        historyPane.add(messageArea);//JTextArea
+        historyPanel.add(messageArea);//JTextArea
+        
+        JScrollPane scrollPane = new JScrollPane(historyArea);
+        historyPanel.add(scrollPane);//JTextArea
+        scrollPane = new JScrollPane(messageArea);
+        historyPanel.add(scrollPane);//JTextArea
         
         //przycisk
         sendMessageBtn = new JButton("Wyślij wiadomość");
-	historyPane.add(sendMessageBtn);
+	historyPanel.add(sendMessageBtn);
 	sendMessageBtn.addActionListener((ActionEvent e) -> {
             sendMessage();
         });
         
-        container.add(historyPane);
+        container.add(historyPanel);
     }
     
     private void addFriendsPanel() {
@@ -294,6 +300,9 @@ public class KaduPadu extends JFrame {
             }
         });
 	friendsPanel.add(friendsSelect);
+        
+        JScrollPane scrollPane = new JScrollPane(friendsSelect);
+        friendsPanel.add(scrollPane);//JTextArea
         
         //add new friends panel
         newFriendText = new JTextField(1);
