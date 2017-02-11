@@ -133,7 +133,7 @@ public class KaduPadu extends JFrame {
                 @Override
                 public void run() {
                     System.out.println("Rozpoczęto nasłuchiwanie na serwer");
-                    String serverMessage;
+                    //String serverMessage;
                     while(true){
                         //try {
                         //    serverMessage = clientReader.readLine();
@@ -174,7 +174,7 @@ public class KaduPadu extends JFrame {
                 case "F":
                     if(!"-1".equals(serverMessage)) {
                         friendsList.add(serverMessage);
-                        addFriendToTxt(serverMessage, this.getFriendsPath());
+                        addToTxt(serverMessage, this.getFriendsPath());
                         addFriendTOCombobox(serverMessage);
                         newFriendLabel.setForeground(Color.green);
                         newFriendLabel.setText("Prawidłowo dodano nowego znajomego!");
@@ -185,6 +185,9 @@ public class KaduPadu extends JFrame {
                     }
                     break;
                 case "M":
+                    Message msg = new Message(serverMessage.split(";"));
+                    addMessage(msg);
+                    addToTxt(msg.toString(), this.getHistoryPath());
                     break;
                 default:
                     System.out.println("Nieznana wiadomość");
@@ -336,9 +339,9 @@ public class KaduPadu extends JFrame {
         }
     }
     
-    private void addFriendToTxt(String newFriend, String fileName) {
+    private void addToTxt(String messagge, String fileName) {
         try {
-            Files.write(Paths.get(fileName), ('\n'+newFriend).getBytes(), StandardOpenOption.APPEND);
+            Files.write(Paths.get(fileName), ('\n'+messagge).getBytes(), StandardOpenOption.APPEND);
         }catch (IOException e) {
             //exception handling left as an exercise for the reader
         }
@@ -355,20 +358,12 @@ public class KaduPadu extends JFrame {
         strMessage = strMessage.replace(';', ',');
         System.out.println("Wysyłana wiadomość - "+strMessage);
         
-        Message message = new Message(friendId, MessageType.SENDED, MessageStatus.OLD, new Date(), strMessage);
-        addMessage(Integer.parseInt(friendId), message);
-        addHistory(message);
+        Message message = new Message(friendId, MessageType.SENDED, new Date(), strMessage);
+        sendMessageToServer(MessageCode.SEND_MESSAGE, message.toString());
     }
     
-    private void addHistory(Message message) {
-        try {
-            Files.write(Paths.get(this.getHistoryPath()), ('\n'+message.toString()).getBytes(), StandardOpenOption.APPEND);
-        }catch (IOException e) {
-            //exception handling left as an exercise for the reader
-        }
-    }
-    
-    private void addMessage(int id, Message message) {
+    private void addMessage(Message message) {
+        int id = Integer.parseInt(message.getFriendId());
         if(messageMap.containsKey(id)) {
             messageMap.get(id).add(message);
         } else {
@@ -412,8 +407,7 @@ public class KaduPadu extends JFrame {
                     if("".equals(currentLine)) continue;
                     System.out.println(currentLine);
                     String[] strMessage = currentLine.split(";");
-                    message = new Message(strMessage);
-                    addMessage(Integer.parseInt(strMessage[0]),message);
+                    addMessage(new Message(strMessage));
                 }
                 System.out.println("Odczytano znajomych z pliku - " + friendsList);
             } catch (IOException e) {

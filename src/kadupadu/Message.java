@@ -16,14 +16,12 @@ import java.util.Date;
 public class Message {
     private String friendId;
     private MessageType type;
-    private MessageStatus status;
     private Date data;
     private String tresc;
     
-    Message(String friendId, MessageType type, MessageStatus status, Date data, String tresc) {
+    Message(String friendId, MessageType type, Date data, String tresc) {
         this.friendId = friendId;
         this.type = type;
-        this.status = status;
         this.data = data;
         this.tresc = tresc;
     }
@@ -32,7 +30,6 @@ public class Message {
         this.friendId   = strMessage[0];
         //System.out.println(strMessage[1]);
         this.type       = (Integer.parseInt(strMessage[1]) == 0 ? MessageType.SENDED : MessageType.RECIVED);
-        this.status     = (Integer.parseInt(strMessage[2]) == 0 ? MessageStatus.OLD : MessageStatus.NEW);
         this.data       = new Date(strMessage[3]);
         this.tresc      = strMessage[4];
     }
@@ -40,11 +37,18 @@ public class Message {
     @Override
     public String toString() {
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        return friendId+";"+type+";"+status+";"+dateFormat.format(data)+";"+tresc;
+        return getFriendId()+";"+type+";"+dateFormat.format(data)+";"+tresc;
     }
     
     public String toLabel() {
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         return dateFormat.format(data)+": "+tresc;
+    }
+
+    /**
+     * @return the friendId
+     */
+    public String getFriendId() {
+        return friendId;
     }
 }
