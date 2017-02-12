@@ -52,7 +52,7 @@ public class KaduPadu extends JFrame {
     private final String historyPath = "history.txt";
     
     private final String serverHostName = "localhost";
-    private final int serverPortNumber = 1683;
+    private final int serverPortNumber = 1794;
     private Socket clientSocket;
     private BufferedReader clientReader;
     private PrintWriter clientWriter;
@@ -134,7 +134,7 @@ public class KaduPadu extends JFrame {
                 @Override
                 public void run() {
                     System.out.println("Rozpoczęto nasłuchiwanie na serwer");
-                    //String serverMessage;
+                    String serverMessage;
                     while(true){
                         //try {
                         //    serverMessage = clientReader.readLine();
@@ -158,15 +158,16 @@ public class KaduPadu extends JFrame {
     
     public void sendMessageToServer(MessageCode code,String msg){
         clientWriter.println(code.toString()+';'+msg+';');
-        System.out.println("Wysłano wiadomość: " + code+';'+msg);
+        System.out.println("Wysłano wiadomość: " + code+';'+msg+';');
     }
 	
     public void readMessageFromServer(){
         try {		
             String serverMessage = clientReader.readLine();
-            String code = serverMessage.substring(0, 1);
-            serverMessage = serverMessage.substring(2);
+            if(serverMessage.length()<4) return;
             System.out.println("Odczytano wiadomość z serwera: " + serverMessage);
+            String code = serverMessage.substring(0, 1);
+            serverMessage = serverMessage.substring(2, serverMessage.length()-1);
             switch(code){
                 case "N":
                     this.setUserID(Integer.parseInt(serverMessage));
@@ -189,9 +190,10 @@ public class KaduPadu extends JFrame {
                     Message msg = new Message(serverMessage.split(";"));
                     addMessage(msg);
                     addToTxt(msg.toString(), this.getHistoryPath());
+                    loadHistory(Integer.parseInt(friendsSelect.getSelectedValue().toString()));
                     break;
                 default:
-                    System.out.println("Nieznana wiadomość");
+                    System.out.println("Nie rozpoznano wiadomosci ("+code+", "+serverMessage+")");
             }
 
         } catch (IOException e) {

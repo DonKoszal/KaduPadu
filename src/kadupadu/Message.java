@@ -30,8 +30,8 @@ public class Message {
         this.friendId   = strMessage[0];
         //System.out.println(strMessage[1]);
         this.type       = (Integer.parseInt(strMessage[1]) == 0 ? MessageType.SENDED : MessageType.RECIVED);
-        this.data       = new Date(strMessage[3]);
-        this.tresc      = strMessage[4];
+        this.data       = new Date(strMessage[2]);
+        this.tresc      = strMessage[3];
     }
     
     @Override
