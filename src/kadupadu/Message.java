@@ -37,7 +37,7 @@ public class Message {
     @Override
     public String toString() {
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        return getFriendId()+";"+type+";"+dateFormat.format(data)+";"+tresc;
+        return getFriendId()+";"+getType()+";"+dateFormat.format(data)+";"+tresc;
     }
     
     public String toLabel() {
@@ -50,5 +50,12 @@ public class Message {
      */
     public String getFriendId() {
         return friendId;
+    }
+
+    /**
+     * @return the type
+     */
+    public MessageType getType() {
+        return type;
     }
 }

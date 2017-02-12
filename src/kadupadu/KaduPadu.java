@@ -36,10 +36,15 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 /**
  *
@@ -71,10 +76,13 @@ public class KaduPadu extends JFrame {
     private JButton newFriendBtn;
     private JButton sendMessageBtn;
     private final JLabel friendsLabel = new JLabel("Lista znajomych");
-    private final JLabel kaduPaduLabel = new JLabel("KaduPadu version pre-alpha");
+    private final JLabel kaduPaduLabel = new JLabel("KaduPadu version beta");
     private JLabel newFriendLabel = new JLabel("Wpisz ID nowego znajomego");
     private JTextArea messageArea;
-    private JTextArea historyArea;
+    private JTextPane historyArea;
+    private StyledDocument historyDoc;
+    private Style historyStyle;
+    
     /**
      * @param args the command line arguments
      */
@@ -244,11 +252,13 @@ public class KaduPadu extends JFrame {
         
         Border border = BorderFactory.createLineBorder(Color.BLACK);
         
-        historyArea = new JTextArea(7,1);
-        historyArea.setLineWrap(true);
-        historyArea.setWrapStyleWord(true);
+        historyArea = new JTextPane();
+        //historyArea.setLineWrap(true);
+        //historyArea.setWrapStyleWord(true);
         historyArea.setEditable(false);
         historyArea.setBorder(BorderFactory.createMatteBorder(3,3,3,3,Color.blue));
+        historyDoc = historyArea.getStyledDocument();
+        historyStyle = historyArea.addStyle("History style", null);
         historyPanel.add(historyArea);//JTextArea
         
         messageArea = new JTextArea(1, 1);
@@ -332,8 +342,12 @@ public class KaduPadu extends JFrame {
         historyArea.setText("");
         if(!messageMap.containsKey(friendId)) return;
         ArrayList<Message> temp = messageMap.get(friendId);
+        
         temp.forEach((msg) -> {
-            historyArea.setText(historyArea.getText()+msg.toLabel()+'\n');
+            if("0".equals(msg.getType().toString())) StyleConstants.setForeground(historyStyle, Color.black);
+            else StyleConstants.setForeground(historyStyle, Color.blue);
+            try { historyDoc.insertString(historyDoc.getLength(), msg.toLabel()+'\n',historyStyle); }
+            catch (BadLocationException e){}
         });
     }
     
@@ -364,6 +378,7 @@ public class KaduPadu extends JFrame {
     
     private void sendMessage() {
         String strMessage = messageArea.getText();
+        if(friendsSelect.isSelectionEmpty()) return;
         String friendId = friendsSelect.getSelectedValue().toString();
         if("".equals(strMessage) || "".equals(friendId)) return;
         strMessage = strMessage.replace(';', ',');
@@ -371,6 +386,8 @@ public class KaduPadu extends JFrame {
         
         Message message = new Message(friendId, MessageType.SENDED, new Date(), strMessage);
         sendMessageToServer(MessageCode.SEND_MESSAGE, message.toString());
+        
+        messageArea.setText("");
     }
     
     private void addMessage(Message message) {
