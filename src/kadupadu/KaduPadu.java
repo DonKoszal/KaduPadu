@@ -76,7 +76,7 @@ public class KaduPadu extends JFrame {
     private JButton newFriendBtn;
     private JButton sendMessageBtn;
     private final JLabel friendsLabel = new JLabel("Lista znajomych");
-    private final JLabel kaduPaduLabel = new JLabel("KaduPadu version beta");
+    private final JLabel kaduPaduLabel = new JLabel("KaduPadu version 1.0");
     private JLabel newFriendLabel = new JLabel("Wpisz ID nowego znajomego");
     private JTextArea messageArea;
     private JTextPane historyArea;
@@ -172,8 +172,8 @@ public class KaduPadu extends JFrame {
     public void readMessageFromServer(){
         try {		
             String serverMessage = clientReader.readLine();
-            if(serverMessage.length()<4) return;
             System.out.println("Odczytano wiadomość z serwera: " + serverMessage);
+            if(serverMessage.length()<4) return;
             String code = serverMessage.substring(0, 1);
             serverMessage = serverMessage.substring(2, serverMessage.length()-1);
             switch(code){
@@ -198,6 +198,7 @@ public class KaduPadu extends JFrame {
                     Message msg = new Message(serverMessage.split(";"));
                     addMessage(msg);
                     addToTxt(msg.toString(), this.getHistoryPath());
+                    if(friendsSelect.isSelectionEmpty()) break;
                     loadHistory(Integer.parseInt(friendsSelect.getSelectedValue().toString()));
                     break;
                 default:
